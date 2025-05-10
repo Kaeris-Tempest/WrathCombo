@@ -342,36 +342,46 @@ namespace WrathCombo.CustomComboNS.Functions
             P8
         }
 
+        
+        public enum AttackAngle
+        {
+            Front,
+            LeftFlank,
+            RightFlank,
+            Rear,
+            Unknown
+        }
         /// <summary> Gets the player's position relative to the target. </summary>
         /// <returns> 1: Right Flank. <br/> 2: Rear. <br/> 3: Left Flank. <br/> 4: Front. </returns>
-        public static int AngleToTarget()
+        public static AttackAngle AngleToTarget()
         {
-            if (LocalPlayer is not { } player || CurrentTarget is not IBattleChara target || target.ObjectKind != ObjectKind.BattleNpc) return 0;
+            if (LocalPlayer is not { } player || CurrentTarget is not IBattleChara target || target.ObjectKind != ObjectKind.BattleNpc) return AttackAngle.Unknown;
 
             float angle = PositionalMath.AngleXZ(target.Position, player.Position) - target.Rotation;
-            float regionDegrees = PositionalMath.ToDegrees(angle) + (angle < 0f ? 360f : 0f);
+            double regionDegrees = PositionalMath.ToDegrees(angle) % 360;
+            if (regionDegrees < 0) regionDegrees += 360;
+            //float regionDegrees = PositionalMath.ToDegrees(angle) + (angle < 0f ? 360f : 0f);
 
             return regionDegrees switch
             {
-                >= 315f or <= 45f       => 4, // Front (0° ± 45°)
-                >= 45f and <= 135f      => 1, // Right Flank (90° ± 45°)
-                >= 135f and <= 225f     => 2, // Rear (180° ± 45°)
-                >= 225f and <= 315f     => 3, // Left Flank (270° ± 45°)
-                _                       => 0  // Fallback
+                >= 45f and <= 135f      => AttackAngle.RightFlank, // Right Flank (90° ± 45°)
+                >= 135f and <= 225f     => AttackAngle.Rear,
+                >= 225f and <= 315f     => AttackAngle.LeftFlank,
+                _                       => AttackAngle.Front
             };
         }
 
         /// <summary> Is player on target's rear. </summary>
         /// <returns> True or false. </returns>
-        public static bool OnTargetsRear() => AngleToTarget() is 2;
+        public static bool OnTargetsRear() => AngleToTarget() is AttackAngle.Rear;
 
         /// <summary> Is player on target's flank. </summary>
         /// <returns> True or false. </returns>
-        public static bool OnTargetsFlank() => AngleToTarget() is 1 or 3;
+        public static bool OnTargetsFlank() => AngleToTarget() is AttackAngle.LeftFlank or AttackAngle.RightFlank;
 
         /// <summary> Is player on target's front. </summary>
         /// <returns> True or false. </returns>
-        public static bool OnTargetsFront() => AngleToTarget() is 4;
+        public static bool OnTargetsFront() => AngleToTarget() is AttackAngle.Front;
 
         /// <summary> Performs positional calculations. Based on the excellent Resonant plugin. </summary>
         internal static class PositionalMath
