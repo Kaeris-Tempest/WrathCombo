@@ -346,8 +346,7 @@ namespace WrathCombo.CustomComboNS.Functions
         public enum AttackAngle
         {
             Front,
-            LeftFlank,
-            RightFlank,
+            Flank,
             Rear,
             Unknown
         }
@@ -364,10 +363,10 @@ namespace WrathCombo.CustomComboNS.Functions
 
             return regionDegrees switch
             {
-                >= 45f and <= 135f      => AttackAngle.RightFlank, // Right Flank (90° ± 45°)
-                >= 135f and <= 225f     => AttackAngle.Rear,
-                >= 225f and <= 315f     => AttackAngle.LeftFlank,
-                _                       => AttackAngle.Front
+                >= 45 and <= 135 or >= 225 and <= 315 => AttackAngle.Flank,
+                >= 135 and <= 225 => AttackAngle.Rear,
+                >= 315 or <= 45 => AttackAngle.Front,
+                _ => AttackAngle.Unknown
             };
         }
 
@@ -377,7 +376,7 @@ namespace WrathCombo.CustomComboNS.Functions
 
         /// <summary> Is player on target's flank. </summary>
         /// <returns> True or false. </returns>
-        public static bool OnTargetsFlank() => AngleToTarget() is AttackAngle.LeftFlank or AttackAngle.RightFlank;
+        public static bool OnTargetsFlank() => AngleToTarget() is AttackAngle.Flank;
 
         /// <summary> Is player on target's front. </summary>
         /// <returns> True or false. </returns>
